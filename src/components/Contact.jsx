@@ -26,28 +26,58 @@ export default function Contact() {
     setLoading(true);
     setStatus({ type: '', message: '' });
 
+    const accessKey =
+      import.meta.env.VITE_WEB3FORMS_ACCESS_KEY ||
+      '85dc48ec-7b20-43f4-a777-3a9c508fdf49';
+
     try {
-      // Client-side pure frontend form submission with instant confirmation
-      setStatus({
-        type: 'success',
-        message: `Thank you, ${formData.name}! Your project inquiry has been received. I'll reply to ${formData.email} within 24 hours.`,
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          access_key: accessKey,
+          name: formData.name,
+          email: formData.email,
+          subject: `Portfolio Inquiry: ${formData.projectType} from ${formData.name}`,
+          project_type: formData.projectType,
+          message: formData.message,
+          from_name: formData.name,
+        }),
       });
 
-      confetti({
-        particleCount: 90,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#00f2fe', '#00e5ff', '#ffffff'],
-      });
+      const data = await response.json();
 
-      setFormData({
-        name: '',
-        email: '',
-        projectType: 'MERN Stack Application',
-        message: '',
-      });
+      if (response.ok && data.success) {
+        setStatus({
+          type: 'success',
+          message: `Thank you, ${formData.name}! Your message has been sent directly to my inbox. I'll get back to you within 24 hours.`,
+        });
+
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#00f2fe', '#00e5ff', '#ffffff'],
+        });
+
+        setFormData({
+          name: '',
+          email: '',
+          projectType: 'MERN Stack Application',
+          message: '',
+        });
+      } else {
+        throw new Error(data.message || 'Something went wrong. Please try again.');
+      }
     } catch (err) {
-      console.warn('Form submission:', err);
+      console.error('Web3Forms submission error:', err);
+      setStatus({
+        type: 'error',
+        message: err.message || 'Failed to send message. Please reach out directly to aamishmalik830@gmail.com.',
+      });
     } finally {
       setLoading(false);
     }
