@@ -27,6 +27,7 @@ export default function Contact() {
     setStatus({ type: '', message: '' });
 
     const accessKey =
+      import.meta.env.WEB3FORMS_ACCESS_KEY ||
       import.meta.env.VITE_WEB3FORMS_ACCESS_KEY ||
       '85dc48ec-7b20-43f4-a777-3a9c508fdf49';
 
